@@ -7,10 +7,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sample.cafekiosk.spring.domain.Timestamp;
 import sample.cafekiosk.spring.domain.orderproduct.OrderProduct;
+import sample.cafekiosk.spring.domain.product.Product;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -43,5 +45,22 @@ public class Order extends Timestamp {
         this.totalPrice = totalPrice;
         this.registeredDateTime = registeredDateTime;
         this.orderProducts = orderProducts;
+    }
+
+    public Order(List<Product> products, LocalDateTime now) {
+        this.status = OrderStatusType.INIT;
+        this.totalPrice = calculateTotalPrice(products);
+        this.registeredDateTime = now;
+        this.orderProducts = products.stream()
+                .map(product -> new OrderProduct(this, product))
+                .collect(Collectors.toList());
+    }
+
+    public static Order create(List<Product> products, LocalDateTime now) {
+        return new Order(products, now);
+    }
+
+    private static int calculateTotalPrice(List<Product> products){
+        return products.stream().mapToInt(Product::getPrice).sum();
     }
 }
